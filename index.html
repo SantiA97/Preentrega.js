@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carro de Compras</title>
+</head>
+<body>
+    <h1>Bienvenidos a Iza Smith</h1>
+
+    <div>
+        <h2>Lista de Productos</h2>
+        <ul id="lista-productos"></ul>
+        <button id="ver-promocion">Ver Precios con Promociones</button>
+    </div>
+
+    <div>
+        <h2>Carrito de Compras</h2>
+        <ul id="carro-compras"></ul>
+    </div>
+
+    <div>
+        <h2>Agregar Producto</h2>
+        <input type="text" id="nombre-producto" placeholder="Nombre del producto">
+        <input type="number" id="cantidad-producto" placeholder="Cantidad">
+        <button id="agregar-producto">Agregar al Carro</button>
+    </div>
+
+    <div>
+        <h2>Opciones de Descuento</h2>
+        <label>
+            <input type="checkbox" id="usar-descuento">
+            Aplicar descuento de Santander/Provincia (15%)
+        </label>
+    </div>
+
+    <div>
+        <h2>Opciones de Pago</h2>
+        <label for="cuotas">Selecciona el número de cuotas:</label>
+        <select id="cuotas">
+            <option value="1">Pago único</option>
+            <option value="3">3 cuotas</option>
+            <option value="6">6 cuotas</option>
+        </select>
+    </div>
+
+    <div>
+        <h2>Resumen de Compra</h2>
+        <div id="resumen-compra"></div>
+    </div>
+
+    <div>
+        <!-- Botón de Confirmar Compra al final -->
+        <button id="confirmar-compra">Confirmar Compra</button>
+    </div>
+
+    <script src="compras.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
