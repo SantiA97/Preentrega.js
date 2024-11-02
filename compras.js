@@ -1,89 +1,120 @@
-const productos =
-[
-    {
-        id: 1,
-        nombre: "isabella",
-        tipo: "Bandolera",
-        descripcion: "Isa es una bandolera del tamaño ideal donde caben todas tus cositas, además cuenta con divisones interiores",
-        precio: 115000,
-        tamaño: "Pequeña",
-        cantidad:0
-    },
+$(document).ready(function() {
+    let carroCompras = JSON.parse(localStorage.getItem('carroCompras')) || [];
+    let productos = [];
 
-    {
-        id: 2,
-        nombre: "franchi",
-        tipo: "Tote bag",
-        descripcion: "Tote canchera con tela 100% libre de polietileno, ideal para llevar a la facu o de compras",
-        precio: 85000,
-        tamaño: "mediana",
-        cantidad:0
-    },
+    const cargarProductos = async () => {
+        try {
+            const response = await fetch('productos.json');
+            productos = await response.json();
+            actualizarDOMListaProductos();
+        } catch (error) {
+            console.error("Error al cargar los productos:", error);
+        }
+    };
 
-    {
-        id: 3,
-        nombre: "camila",
-        tipo: "Cartera",
-        descripcion: "Nuevo ingreso super canchero, ideal para todos los días, con 3 compartimentos y bolsillo externo multiuso. Disponible en 3 colores.",
-        precio: 139630,
-        Tamaño: "Grande",
-        cantidad:0
-    },
+    const actualizarDOMListaProductos = () => {
+        $('#lista-productos').empty();
+        _.forEach(productos, producto => {
+            $('#lista-productos').append(`
+                <li>
+                    ${producto.id} - ${producto.nombre}: $${producto.precio} 
+                    <button class="ver-detalle" data-id="${producto.id}">Ver Detalle</button>
+                </li>
+            `);
+        });
+    };
 
-    {
-        id: 4,
-        nombre: "lolita mia",
-        tipo: "Cartera",
-        descripcion: "Volvió a stock la cartera más viral de TikTok, esta vez con una variante de colores única primaveral. Dispnmible 3 colores por tiempo limitado",
-        precio: 160000,
-        tamaño:"Grande",
-        cantidad:0
-    },
+    const mostrarDetalleProducto = (id) => {
+        const producto = _.find(productos, { id: parseInt(id) });
+        if (producto) {
+            const detalleHTML = `
+                <h3>${producto.nombre}</h3>
+                <p><strong>Descripción:</strong> ${producto.descripcion}</p>
+                <p><strong>Precio:</strong> $${producto.precio}</p>
+                <p><strong>Tipo:</strong> ${producto.tipo}</p>
+                <p><strong>Tamaño:</strong> ${producto.tamaño}</p>
+            `;
+            $('#detalle-producto').html(detalleHTML).show();
+        }
+    };
 
-    {
-        id: 5,
-        nombre: "camilita",
-        tipo: "Cartera",
-        descripcion: "La versión chiquita y compacta de una de las carteras m{as buscadas en nuestra web. Combina con todo en sus colores neutros. O buscala en animal print para ser tendencia",
-        precio: 62000,
-        tamaño: "chicha",
-        cantidad:0
-    },
+    const actualizarDOMCarroCompras = () => {
+        $('#carro-compras').empty();
+        _.forEach(carroCompras, producto => {
+            $('#carro-compras').append(`<li>${producto.nombre} | Cantidad: ${producto.cantidad}</li>`);
+        });
+    };
 
-    {
-        id: 6,
-        nombre: "paquita",
-        tipo: "Riñonera",
-        descripcion: "Es realmente la riñonera más comoda y grande del mercado, donde entra todo y más",
-        precio: 98000,
-        tamaño: "mediano",
-        cantidad:0
-    },
-    {
-        id: 7,
-        nombre: "sara",
-        tipo: " Bandolera",
-        descripcion:  "La típica bandolera negra que va con todo, esta vez también salió edición acharolada ",
-        precio: 88000,
-        tamaño: "Pequeña",
-        cantidad:0
-    },
-    {
-        id: 8,
-        nombre: "lara",
-        tipo: "Shopping Bag",
-        descripcion: "Cartera 100% cuero, con hebilla imantada en el medio. Ideal para todos los días. Disponible en 3 colores lisos",
-        precio: 120000,
-        tamaño: "Grande",
-        cantidad:0
-    },
-    {
-        id: 9,
-        nombre: "susanita",
-        tipo: "Mochila",
-        descripcion: "Mochila inmensa de 4 cierres externos y 3 interiores. Ideal para ir a entrenar, para llevar las cosas del bebé o para lo que quieras vos.",
-        precio: 148200,
-        tamaño: "Grande",
-        cantidad:0
-    },
-]
+    const agregarAlCarro = (producto, cantidad) => {
+        const productoEnCarro = _.find(carroCompras, { id: producto.id });
+        if (productoEnCarro) {
+            productoEnCarro.cantidad += cantidad;
+        } else {
+            carroCompras.push({ ...producto, cantidad });
+        }
+        localStorage.setItem('carroCompras', JSON.stringify(carroCompras));
+        actualizarDOMCarroCompras();
+    };
+
+    const compraEnCuotas = (precioTotal, cuotas) => (precioTotal / cuotas).toFixed(2);
+
+    const finalizarCompra = () => {
+        const totalProductos = _.sumBy(carroCompras, 'cantidad');
+        const totalPrecio = _.sumBy(carroCompras, producto => producto.precio * producto.cantidad);
+        const usarDescuento = $('#usar-descuento').is(':checked');
+        let totalConDescuento = usarDescuento ? totalPrecio * 0.85 : totalPrecio;
+
+        const cuotasSeleccionadas = parseInt($('#cuotas').val());
+        let detalleCuotas = '';
+        if (cuotasSeleccionadas > 1) {
+            const totalCuota = compraEnCuotas(totalConDescuento, cuotasSeleccionadas);
+            detalleCuotas = `Total en ${cuotasSeleccionadas} cuotas de $${totalCuota}`;
+        } else {
+            detalleCuotas = "Pago en una sola cuota.";
+        }
+
+        const resumenCompra = `
+            <p>Total de productos: ${totalProductos}</p>
+            <p>Total: $${totalConDescuento.toFixed(2)}</p>
+            <p>${detalleCuotas}</p>
+            <p>¡Gracias por su compra!</p>
+        `;
+        $('#resumen-compra').html(resumenCompra);
+
+        carroCompras = [];
+        localStorage.removeItem('carroCompras');
+        actualizarDOMCarroCompras();
+    };
+
+    $('#agregar-producto').on('click', () => {
+        const nombreProducto = $('#nombre-producto').val();
+        const cantidadProducto = parseInt($('#cantidad-producto').val());
+
+        const producto = _.find(productos, item => item.nombre.toLowerCase() === nombreProducto.toLowerCase());
+        if (producto && cantidadProducto > 0) {
+            agregarAlCarro(producto, cantidadProducto);
+            $('#nombre-producto').val(''); // Limpiar campo
+            $('#cantidad-producto').val(''); // Limpiar campo
+        } else {
+            $('#resumen-compra').html("<p>Producto no encontrado o cantidad inválida.</p>");
+        }
+    });
+
+    $('#ver-promocion').on('click', () => {
+        const listaPrecios = _.map(productos, producto => {
+            return `<p>${producto.nombre}: Con descuento $${(producto.precio * 0.85).toFixed(2)}</p>`;
+        }).join('');
+        $('#resumen-compra').html(listaPrecios);
+    });
+
+    $('#confirmar-compra').on('click', finalizarCompra);
+
+    // Manejo de eventos para ver detalles del producto
+    $(document).on('click', '.ver-detalle', function() {
+        const productoId = $(this).data('id');
+        mostrarDetalleProducto(productoId);
+    });
+
+    // Llama a cargar productos al inicio
+    cargarProductos();
+});
